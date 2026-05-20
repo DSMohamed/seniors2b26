@@ -1,8 +1,16 @@
 import { motion } from "framer-motion";
 import { SectionHeader } from "./SectionHeader";
 import { letters } from "@/data/seniors";
+import { useQuery } from "@tanstack/react-query";
+import { listLetters } from "@/data/content";
 
 export function Letters() {
+  const lettersQuery = useQuery({
+    queryKey: ["letters"],
+    queryFn: listLetters,
+  });
+  const items = (lettersQuery.data?.length ?? 0) > 0 ? lettersQuery.data! : letters;
+
   return (
     <section className="relative px-6 py-32 md:py-40">
       <div className="mx-auto max-w-5xl">
@@ -12,9 +20,9 @@ export function Letters() {
           sub="Written in pencil. Sealed in feeling."
         />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {letters.map((l, i) => (
+          {items.map((l, i) => (
             <motion.div
-              key={i}
+              key={"id" in l ? l.id : i}
               initial={{ opacity: 0, y: 40, rotate: i % 2 === 0 ? -2 : 2 }}
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               viewport={{ once: true, margin: "-80px" }}

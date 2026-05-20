@@ -12,4 +12,10 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  vite: {
+    build: {
+      // Emit dist/client/.vite/manifest.json so we can generate index.html after build (Pages upload).
+      manifest: true,
+    },
+  },
 });

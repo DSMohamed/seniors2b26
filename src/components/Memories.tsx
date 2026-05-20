@@ -3,9 +3,16 @@ import { useState } from "react";
 import { SectionHeader } from "./SectionHeader";
 import { memories } from "@/data/seniors";
 import { X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { listMemories } from "@/data/media";
 
 export function Memories() {
   const [open, setOpen] = useState<number | null>(null);
+  const memoriesQuery = useQuery({
+    queryKey: ["memories"],
+    queryFn: listMemories,
+  });
+  const media = (memoriesQuery.data?.length ?? 0) > 0 ? memoriesQuery.data! : memories;
 
   return (
     <section className="relative px-6 py-32 md:py-40">
@@ -17,7 +24,7 @@ export function Memories() {
         />
 
         <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 [&>*]:mb-5">
-          {memories.map((m, i) => (
+          {media.map((m, i) => (
             <motion.button
               key={i}
               initial={{ opacity: 0, y: 40 }}
@@ -67,12 +74,12 @@ export function Memories() {
               className="max-h-[85vh] max-w-4xl overflow-hidden rounded-2xl border border-gold/30 glow-gold"
               onClick={(e) => e.stopPropagation()}
             >
-              <img src={memories[open].src} alt="" className="max-h-[70vh] w-auto" />
+              <img src={media[open].src} alt="" className="max-h-[70vh] w-auto" />
               <div className="glass-strong p-6">
                 <p className="font-mono-grotesk text-[10px] uppercase tracking-[0.4em] text-gold">
                   Frame {String(open + 1).padStart(2, "0")}
                 </p>
-                <p className="mt-2 font-display text-2xl">{memories[open].caption}</p>
+                <p className="mt-2 font-display text-2xl">{media[open].caption}</p>
               </div>
             </motion.div>
           </motion.div>

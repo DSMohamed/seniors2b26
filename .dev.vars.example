@@ -1,0 +1,9 @@
+## Cloudflare Wrangler local secrets (copy to .dev.vars)
+## Used by server route: /api/admin/students
+ADMIN_PASSWORD="change-me"
+
+# Firebase / Google Service Account (Firestore Admin API access)
+FIREBASE_PROJECT_ID="seniors2b26"
+GOOGLE_SERVICE_ACCOUNT_EMAIL="firebase-adminsdk-xxxxx@seniors2b26.iam.gserviceaccount.com"
+GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+

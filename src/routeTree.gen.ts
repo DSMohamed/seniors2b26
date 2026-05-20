@@ -9,38 +9,140 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DevRouteImport } from './routes/dev'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAdminTimelineRouteImport } from './routes/api/admin/timeline'
+import { Route as ApiAdminStudentsRouteImport } from './routes/api/admin/students'
+import { Route as ApiAdminReelsRouteImport } from './routes/api/admin/reels'
+import { Route as ApiAdminMemoriesRouteImport } from './routes/api/admin/memories'
+import { Route as ApiAdminLettersRouteImport } from './routes/api/admin/letters'
+import { Route as ApiAdminChaosRouteImport } from './routes/api/admin/chaos'
 
+const DevRoute = DevRouteImport.update({
+  id: '/dev',
+  path: '/dev',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminTimelineRoute = ApiAdminTimelineRouteImport.update({
+  id: '/api/admin/timeline',
+  path: '/api/admin/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminStudentsRoute = ApiAdminStudentsRouteImport.update({
+  id: '/api/admin/students',
+  path: '/api/admin/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminReelsRoute = ApiAdminReelsRouteImport.update({
+  id: '/api/admin/reels',
+  path: '/api/admin/reels',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminMemoriesRoute = ApiAdminMemoriesRouteImport.update({
+  id: '/api/admin/memories',
+  path: '/api/admin/memories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLettersRoute = ApiAdminLettersRouteImport.update({
+  id: '/api/admin/letters',
+  path: '/api/admin/letters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminChaosRoute = ApiAdminChaosRouteImport.update({
+  id: '/api/admin/chaos',
+  path: '/api/admin/chaos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dev': typeof DevRoute
+  '/api/admin/chaos': typeof ApiAdminChaosRoute
+  '/api/admin/letters': typeof ApiAdminLettersRoute
+  '/api/admin/memories': typeof ApiAdminMemoriesRoute
+  '/api/admin/reels': typeof ApiAdminReelsRoute
+  '/api/admin/students': typeof ApiAdminStudentsRoute
+  '/api/admin/timeline': typeof ApiAdminTimelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dev': typeof DevRoute
+  '/api/admin/chaos': typeof ApiAdminChaosRoute
+  '/api/admin/letters': typeof ApiAdminLettersRoute
+  '/api/admin/memories': typeof ApiAdminMemoriesRoute
+  '/api/admin/reels': typeof ApiAdminReelsRoute
+  '/api/admin/students': typeof ApiAdminStudentsRoute
+  '/api/admin/timeline': typeof ApiAdminTimelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dev': typeof DevRoute
+  '/api/admin/chaos': typeof ApiAdminChaosRoute
+  '/api/admin/letters': typeof ApiAdminLettersRoute
+  '/api/admin/memories': typeof ApiAdminMemoriesRoute
+  '/api/admin/reels': typeof ApiAdminReelsRoute
+  '/api/admin/students': typeof ApiAdminStudentsRoute
+  '/api/admin/timeline': typeof ApiAdminTimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dev'
+    | '/api/admin/chaos'
+    | '/api/admin/letters'
+    | '/api/admin/memories'
+    | '/api/admin/reels'
+    | '/api/admin/students'
+    | '/api/admin/timeline'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dev'
+    | '/api/admin/chaos'
+    | '/api/admin/letters'
+    | '/api/admin/memories'
+    | '/api/admin/reels'
+    | '/api/admin/students'
+    | '/api/admin/timeline'
+  id:
+    | '__root__'
+    | '/'
+    | '/dev'
+    | '/api/admin/chaos'
+    | '/api/admin/letters'
+    | '/api/admin/memories'
+    | '/api/admin/reels'
+    | '/api/admin/students'
+    | '/api/admin/timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevRoute: typeof DevRoute
+  ApiAdminChaosRoute: typeof ApiAdminChaosRoute
+  ApiAdminLettersRoute: typeof ApiAdminLettersRoute
+  ApiAdminMemoriesRoute: typeof ApiAdminMemoriesRoute
+  ApiAdminReelsRoute: typeof ApiAdminReelsRoute
+  ApiAdminStudentsRoute: typeof ApiAdminStudentsRoute
+  ApiAdminTimelineRoute: typeof ApiAdminTimelineRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/dev': {
+      id: '/dev'
+      path: '/dev'
+      fullPath: '/dev'
+      preLoaderRoute: typeof DevRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +150,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/timeline': {
+      id: '/api/admin/timeline'
+      path: '/api/admin/timeline'
+      fullPath: '/api/admin/timeline'
+      preLoaderRoute: typeof ApiAdminTimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/students': {
+      id: '/api/admin/students'
+      path: '/api/admin/students'
+      fullPath: '/api/admin/students'
+      preLoaderRoute: typeof ApiAdminStudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/reels': {
+      id: '/api/admin/reels'
+      path: '/api/admin/reels'
+      fullPath: '/api/admin/reels'
+      preLoaderRoute: typeof ApiAdminReelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/memories': {
+      id: '/api/admin/memories'
+      path: '/api/admin/memories'
+      fullPath: '/api/admin/memories'
+      preLoaderRoute: typeof ApiAdminMemoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/letters': {
+      id: '/api/admin/letters'
+      path: '/api/admin/letters'
+      fullPath: '/api/admin/letters'
+      preLoaderRoute: typeof ApiAdminLettersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/chaos': {
+      id: '/api/admin/chaos'
+      path: '/api/admin/chaos'
+      fullPath: '/api/admin/chaos'
+      preLoaderRoute: typeof ApiAdminChaosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevRoute: DevRoute,
+  ApiAdminChaosRoute: ApiAdminChaosRoute,
+  ApiAdminLettersRoute: ApiAdminLettersRoute,
+  ApiAdminMemoriesRoute: ApiAdminMemoriesRoute,
+  ApiAdminReelsRoute: ApiAdminReelsRoute,
+  ApiAdminStudentsRoute: ApiAdminStudentsRoute,
+  ApiAdminTimelineRoute: ApiAdminTimelineRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

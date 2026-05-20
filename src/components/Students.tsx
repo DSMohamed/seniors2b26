@@ -1,13 +1,19 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { SectionHeader } from "./SectionHeader";
-import { students } from "@/data/seniors";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { listStudents } from "@/data/students";
 
 export function Students() {
   const [q, setQ] = useState("");
-  const filtered = students.filter(s =>
-    [s.name, s.nickname, s.badge, s.career, s.quote].join(" ").toLowerCase().includes(q.toLowerCase())
+  const studentsQuery = useQuery({
+    queryKey: ["students"],
+    queryFn: listStudents,
+  });
+
+  const filtered = (studentsQuery.data ?? []).filter((s) =>
+    [s.name, s.nickname, s.badge, s.career, s.quote].join(" ").toLowerCase().includes(q.toLowerCase()),
   );
 
   return (
@@ -32,7 +38,7 @@ export function Students() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((s, i) => (
             <motion.article
-              key={s.name}
+              key={s.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
@@ -65,7 +71,15 @@ export function Students() {
             </motion.article>
           ))}
         </div>
-        {filtered.length === 0 && (
+        {studentsQuery.isLoading && (
+          <p className="mt-10 text-center text-muted-foreground">Loading students…</p>
+        )}
+        {studentsQuery.isError && (
+          <p className="mt-10 text-center text-muted-foreground">
+            Couldn’t load students. Check Firestore rules and config.
+          </p>
+        )}
+        {!studentsQuery.isLoading && !studentsQuery.isError && filtered.length === 0 && (
           <p className="mt-10 text-center text-muted-foreground">No one matches. They're probably skipping class.</p>
         )}
       </div>

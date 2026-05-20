@@ -2,8 +2,16 @@ import { motion } from "framer-motion";
 import { SectionHeader } from "./SectionHeader";
 import { chaos } from "@/data/seniors";
 import { Quote } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { listChaos } from "@/data/content";
 
 export function Chaos() {
+  const chaosQuery = useQuery({
+    queryKey: ["chaos"],
+    queryFn: listChaos,
+  });
+  const items = (chaosQuery.data?.length ?? 0) > 0 ? chaosQuery.data! : chaos;
+
   return (
     <section className="relative px-6 py-32 md:py-40">
       <div className="mx-auto max-w-6xl">
@@ -14,9 +22,9 @@ export function Chaos() {
         />
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {chaos.map((c, i) => (
+          {items.map((c, i) => (
             <motion.figure
-              key={i}
+              key={"id" in c ? c.id : i}
               initial={{ opacity: 0, y: 30, rotate: i % 2 === 0 ? -1 : 1 }}
               whileInView={{ opacity: 1, y: 0, rotate: 0 }}
               viewport={{ once: true, margin: "-80px" }}

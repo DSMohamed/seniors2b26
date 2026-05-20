@@ -1,8 +1,14 @@
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { students } from "@/data/seniors";
+import { useQuery } from "@tanstack/react-query";
+import { listStudents } from "@/data/students";
 
 export function Goodbye() {
+  const studentsQuery = useQuery({
+    queryKey: ["students"],
+    queryFn: listStudents,
+  });
+
   const fire = () => {
     confetti({
       particleCount: 160,
@@ -59,8 +65,8 @@ export function Goodbye() {
             transition={{ duration: 12, ease: "linear" }}
             className="space-y-2 text-center font-display text-xl text-foreground/70 md:text-2xl"
           >
-            {students.map((s) => (
-              <p key={s.name}>{s.name}</p>
+            {(studentsQuery.data ?? []).map((s) => (
+              <p key={s.id}>{s.name}</p>
             ))}
             <p className="text-muted-foreground">+ everyone we forgot to name</p>
           </motion.div>

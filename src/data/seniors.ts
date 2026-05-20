@@ -14,15 +14,10 @@ export const memories = [
   { src: memory6, caption: "Bus rides home felt like films.", tall: false },
 ];
 
-export const students = [
-  { name: "Youssef Hany", nickname: "Joe", quote: "If I'm late, start without me.", career: "Aerospace Engineer", badge: "Most likely to invent something", emoji: "🚀" },
-  { name: "Nour El Sayed", nickname: "Nono", quote: "I peaked in revision week.", career: "Surgeon", badge: "Class CEO", emoji: "👑" },
-  { name: "Omar Khaled", nickname: "Omz", quote: "My calculator is my therapist.", career: "Data Scientist", badge: "Most likely to break math", emoji: "🧠" },
-  { name: "Habiba Ahmed", nickname: "Bibo", quote: "I cried in 3 languages.", career: "Architect", badge: "Sweetest soul", emoji: "🌷" },
-  { name: "Karim Tarek", nickname: "KT", quote: "Sleep is a social construct.", career: "Film Director", badge: "Most cinematic existence", emoji: "🎬" },
-  { name: "Salma Mostafa", nickname: "Sal", quote: "I'm not loud, I project.", career: "Lawyer", badge: "Most likely to argue with a teacher", emoji: "⚖️" },
-  { name: "Mazen Ibrahim", nickname: "Mez", quote: "I came. I saw. I forgot the answer.", career: "Entrepreneur", badge: "Most likely to retire at 25", emoji: "💸" },
-  { name: "Layla Hossam", nickname: "Loulou", quote: "I read 4 books this week. Not one was a textbook.", career: "Psychiatrist", badge: "Class philosopher", emoji: "📚" },
+export const reels = [
+  { thumb: memory2, title: "Last day, told in 47 seconds", duration: "0:47", videoUrl: "" },
+  { thumb: memory4, title: "Caps in the air. Knees on the ground.", duration: "1:12", videoUrl: "" },
+  { thumb: memory1, title: "Hallway tour, narrated by us", duration: "2:03", videoUrl: "" },
 ];
 
 export const timeline = [
