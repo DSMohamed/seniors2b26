@@ -72,14 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Seniors 2026 — We Survived Thanaweya Amma" },
+      { title: "Seniors 2B26 — We Survived Thanaweya Amma" },
       {
         name: "description",
         content:
           "A cinematic yearbook for the Class of 2026. Memories, chaos, letters and one last attendance check.",
       },
       { name: "author", content: "Seniors 2B26" },
-      { property: "og:title", content: "Seniors 2026" },
+      { property: "og:title", content: "Seniors 2B26" },
       {
         property: "og:description",
         content: "We survived Thanaweya Amma. Barely. Beautifully. Together.",

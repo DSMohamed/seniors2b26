@@ -4,7 +4,17 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { listStudents, type StudentInput } from "@/data/students";
+import { listStudents, type Student, type StudentInput } from "@/data/students";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { listMemories, listReels } from "@/data/media";
 import { listChaos, listLetters, listTimeline } from "@/data/content";
 
@@ -15,6 +25,8 @@ const studentSchema = z.object({
   career: z.string().min(1),
   badge: z.string().min(1),
   emoji: z.string().min(1),
+  photo: z.string().url().or(z.literal("")),
+  description: z.string(),
 });
 const memorySchema = z.object({
   src: z.string().url(),
@@ -47,6 +59,16 @@ export const Route = createFileRoute("/dev")({
 
 const adminPasswordKey = "adminPassword";
 
+async function readAdminError(res: Response): Promise<string> {
+  const text = (await res.text()).trim();
+  if (text) return text;
+  const type = res.headers.get("content-type") ?? "";
+  if (type.includes("text/html")) {
+    return "Admin API is not running. Deploy with: npm run deploy:worker (static Pages upload cannot run /api/admin/*).";
+  }
+  return `Request failed (${res.status} ${res.statusText})`;
+}
+
 function Dev() {
   const qc = useQueryClient();
   const studentsQuery = useQuery({ queryKey: ["students"], queryFn: listStudents });
@@ -60,6 +82,19 @@ function Dev() {
     if (typeof window === "undefined") return "";
     return window.localStorage.getItem(adminPasswordKey) ?? "";
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
+
+  const emptyStudentForm = {
+    name: "",
+    nickname: "",
+    quote: "",
+    career: "",
+    badge: "",
+    emoji: "",
+    photo: "",
+    description: "",
+  } satisfies StudentInput;
 
   const createMutation = useMutation({
     mutationFn: async (input: StudentInput) => {
@@ -71,7 +106,13 @@ function Dev() {
         },
         body: JSON.stringify(input),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(await readAdminError(res));
+      const type = res.headers.get("content-type") ?? "";
+      if (!type.includes("application/json")) {
+        throw new Error(
+          "Admin API is not running. Deploy with: npm run deploy:worker (static Pages upload cannot run /api/admin/*).",
+        );
+      }
       return (await res.json()) as { id?: string };
     },
     onSuccess: async () => {
@@ -85,17 +126,18 @@ function Dev() {
         method: "DELETE",
         headers: { "x-admin-password": password },
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(await readAdminError(res));
       return (await res.json()) as { ok: boolean };
     },
     onSuccess: async () => {
+      setDeleteTarget(null);
       await qc.invalidateQueries({ queryKey: ["students"] });
     },
   });
 
   const form = useForm<StudentInput>({
     resolver: zodResolver(studentSchema),
-    defaultValues: { name: "", nickname: "", quote: "", career: "", badge: "", emoji: "" },
+    defaultValues: emptyStudentForm,
   });
   const memoryForm = useForm<z.infer<typeof memorySchema>>({
     resolver: zodResolver(memorySchema),
@@ -127,9 +169,19 @@ function Dev() {
       },
       body: body ? JSON.stringify(body) : undefined,
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) throw new Error(await readAdminError(res));
     return res.json().catch(() => ({}));
   };
+
+  const editStudentMutation = useMutation({
+    mutationFn: async (input: StudentInput & { id: string }) =>
+      callAdmin("/api/admin/students", "PUT", input),
+    onSuccess: async () => {
+      setEditingId(null);
+      form.reset(emptyStudentForm);
+      await qc.invalidateQueries({ queryKey: ["students"] });
+    },
+  });
 
   const createMemoryMutation = useMutation({
     mutationFn: async (input: z.infer<typeof memorySchema>) => {
@@ -138,7 +190,7 @@ function Dev() {
         headers: { "content-type": "application/json", "x-admin-password": password },
         body: JSON.stringify(input),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(await readAdminError(res));
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["memories"] });
@@ -150,7 +202,7 @@ function Dev() {
         method: "DELETE",
         headers: { "x-admin-password": password },
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(await readAdminError(res));
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["memories"] });
@@ -163,7 +215,7 @@ function Dev() {
         headers: { "content-type": "application/json", "x-admin-password": password },
         body: JSON.stringify(input),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(await readAdminError(res));
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["reels"] });
@@ -175,7 +227,7 @@ function Dev() {
         method: "DELETE",
         headers: { "x-admin-password": password },
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) throw new Error(await readAdminError(res));
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["reels"] });
@@ -259,13 +311,17 @@ function Dev() {
         </section>
 
         <section className="rounded-2xl border border-border/60 p-6">
-          <h2 className="font-display text-xl font-bold">Add student</h2>
+          <h2 className="font-display text-xl font-bold">{editingId ? "Edit student" : "Add student"}</h2>
 
           <form
             className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2"
             onSubmit={form.handleSubmit(async (values) => {
-              await createMutation.mutateAsync(values);
-              form.reset();
+              if (editingId) {
+                await editStudentMutation.mutateAsync({ ...values, id: editingId });
+              } else {
+                await createMutation.mutateAsync(values);
+                form.reset(emptyStudentForm);
+              }
             })}
           >
             <Field label="Name" error={form.formState.errors.name?.message}>
@@ -289,18 +345,50 @@ function Dev() {
             <Field label="Quote" error={form.formState.errors.quote?.message}>
               <input className="w-full rounded-md border border-input bg-background px-3 py-2" {...form.register("quote")} />
             </Field>
+            <Field label="Photo URL (optional)" error={form.formState.errors.photo?.message}>
+              <input className="w-full rounded-md border border-input bg-background px-3 py-2" {...form.register("photo")} />
+            </Field>
+            <Field label="Description (optional)" error={form.formState.errors.description?.message}>
+              <textarea
+                rows={3}
+                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                {...form.register("description")}
+              />
+            </Field>
 
-            <div className="sm:col-span-2 flex items-center gap-3">
+            <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
               <button
                 type="submit"
-                disabled={createMutation.isPending}
+                disabled={createMutation.isPending || editStudentMutation.isPending}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
               >
-                {createMutation.isPending ? "Saving…" : "Save"}
+                {createMutation.isPending || editStudentMutation.isPending
+                  ? "Saving…"
+                  : editingId
+                    ? "Update"
+                    : "Save"}
               </button>
+              {editingId && (
+                <button
+                  type="button"
+                  className="rounded-md border border-input bg-background px-4 py-2 text-sm"
+                  onClick={() => {
+                    setEditingId(null);
+                    form.reset(emptyStudentForm);
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
               {createMutation.isError && (
                 <p className="text-sm text-destructive">
                   Create failed: {createMutation.error instanceof Error ? createMutation.error.message : "Unknown error"}
+                </p>
+              )}
+              {editStudentMutation.isError && (
+                <p className="text-sm text-destructive">
+                  Update failed:{" "}
+                  {editStudentMutation.error instanceof Error ? editStudentMutation.error.message : "Unknown error"}
                 </p>
               )}
             </div>
@@ -332,15 +420,60 @@ function Dev() {
                   </p>
                   <p className="truncate text-sm text-muted-foreground">{s.badge} • {s.career}</p>
                 </div>
-                <button
-                  onClick={() => deleteMutation.mutate(s.id)}
-                  className="rounded-md border border-input bg-background px-3 py-2 text-sm text-destructive"
-                >
-                  Delete
-                </button>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(s.id);
+                      form.reset({
+                        name: s.name,
+                        nickname: s.nickname,
+                        quote: s.quote,
+                        career: s.career,
+                        badge: s.badge,
+                        emoji: s.emoji,
+                        photo: s.photo ?? "",
+                        description: s.description ?? "",
+                      });
+                    }}
+                    className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(s)}
+                    className="rounded-md border border-input bg-background px-3 py-2 text-sm text-destructive"
+                  >
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
+
+          <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Delete {deleteTarget?.emoji} {deleteTarget?.name}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently remove them from the yearbook. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={deleteMutation.isPending}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+                >
+                  {deleteMutation.isPending ? "Deleting…" : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </section>
 
         <section className="rounded-2xl border border-border/60 p-6">

@@ -33,7 +33,7 @@ export function Hero() {
           className="mt-8 font-display text-6xl font-black leading-[0.95] tracking-tight md:text-[10rem]"
         >
           <span className="text-gradient-gold text-glow-gold">Seniors</span>
-          <span className="block text-foreground/90">2026</span>
+          <span className="block text-foreground/90">2B26</span>
         </motion.h1>
 
         <motion.p

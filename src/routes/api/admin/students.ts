@@ -8,6 +8,8 @@ type StudentInput = {
   career: string;
   badge: string;
   emoji: string;
+  photo?: string;
+  description?: string;
 };
 
 function json(status: number, body: unknown, headers?: HeadersInit) {
@@ -44,6 +46,8 @@ function validateStudentInput(payload: unknown): StudentInput | Response {
       return json(400, { error: `Missing/invalid field: ${key}` });
     }
   }
+  const photo = typeof p.photo === "string" ? p.photo.trim() : "";
+  const description = typeof p.description === "string" ? p.description.trim() : "";
   return {
     name: p.name!.trim(),
     nickname: p.nickname!.trim(),
@@ -51,22 +55,29 @@ function validateStudentInput(payload: unknown): StudentInput | Response {
     career: p.career!.trim(),
     badge: p.badge!.trim(),
     emoji: p.emoji!.trim(),
+    ...(photo ? { photo } : {}),
+    ...(description ? { description } : {}),
   };
 }
 
-function firestoreFields(input: StudentInput) {
+function firestoreFields(input: StudentInput, opts?: { includeCreatedAt?: boolean }) {
   const toString = (v: string) => ({ stringValue: v });
-  return {
-    fields: {
-      name: toString(input.name),
-      nickname: toString(input.nickname),
-      quote: toString(input.quote),
-      career: toString(input.career),
-      badge: toString(input.badge),
-      emoji: toString(input.emoji),
-      createdAt: { timestampValue: new Date().toISOString() },
-    },
+  const fields: Record<string, { stringValue: string } | { timestampValue: string }> = {
+    name: toString(input.name),
+    nickname: toString(input.nickname),
+    quote: toString(input.quote),
+    career: toString(input.career),
+    badge: toString(input.badge),
+    emoji: toString(input.emoji),
   };
+  if (opts?.includeCreatedAt !== false) {
+    fields.createdAt = { timestampValue: new Date().toISOString() };
+  }
+  const photo = input.photo?.trim() ?? "";
+  const description = input.description?.trim() ?? "";
+  if (photo || opts?.includeCreatedAt === false) fields.photo = toString(photo);
+  if (description || opts?.includeCreatedAt === false) fields.description = toString(description);
+  return { fields };
 }
 
 export const Route = createFileRoute("/api/admin/students")({
@@ -116,6 +127,57 @@ export const Route = createFileRoute("/api/admin/students")({
         const doc = (await res.json()) as { name?: string; fields?: unknown };
         const id = doc.name?.split("/").pop();
         return json(200, { id });
+      },
+
+      PUT: async ({ request }) => {
+        const denied = assertAdmin(request);
+        if (denied) return denied;
+
+        const projectId = getEnvVar("FIREBASE_PROJECT_ID");
+        const serviceEmail = getEnvVar("GOOGLE_SERVICE_ACCOUNT_EMAIL");
+        const privateKey = getEnvVar("GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY");
+        if (!projectId || !serviceEmail || !privateKey) {
+          return json(500, {
+            error:
+              "Missing env vars: FIREBASE_PROJECT_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY",
+          });
+        }
+
+        const payload = (await request.json().catch(() => null)) as ({ id?: string } & Partial<StudentInput>) | null;
+        const id = payload?.id?.trim();
+        if (!id) return json(400, { error: "Missing id" });
+
+        const inputOrError = validateStudentInput(payload);
+        if (inputOrError instanceof Response) return inputOrError;
+
+        const photo = typeof payload?.photo === "string" ? payload.photo.trim() : "";
+        const description = typeof payload?.description === "string" ? payload.description.trim() : "";
+        const updateInput: StudentInput = { ...inputOrError, photo, description };
+
+        const token = await getGoogleOAuthAccessToken({
+          FIREBASE_PROJECT_ID: projectId,
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: serviceEmail,
+          GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: privateKey,
+        });
+
+        const res = await fetch(
+          `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/students/${encodeURIComponent(id)}`,
+          {
+            method: "PATCH",
+            headers: {
+              authorization: `Bearer ${token}`,
+              "content-type": "application/json; charset=utf-8",
+            },
+            body: JSON.stringify(firestoreFields(updateInput, { includeCreatedAt: false })),
+          },
+        );
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          return json(500, { error: `Firestore update failed (${res.status})`, details: text });
+        }
+
+        return json(200, { ok: true });
       },
 
       DELETE: async ({ request }) => {

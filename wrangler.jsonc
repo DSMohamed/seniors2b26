@@ -1,7 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "seniors2b26",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "assets": {
+    "directory": "./dist/client",
+    "not_found_handling": "single-page-application"
+  }
+  // Production: npm run deploy:worker (uses dist/server/wrangler.json after build)
+  // Direct Upload (homepage only, no admin APIs): dist/pages-upload.zip — npm run build
 }

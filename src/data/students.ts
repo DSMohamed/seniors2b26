@@ -19,6 +19,8 @@ export type Student = {
   career: string;
   badge: string;
   emoji: string;
+  photo?: string;
+  description?: string;
 };
 
 export type StudentInput = Omit<Student, "id">;

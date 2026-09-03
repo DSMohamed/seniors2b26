@@ -15,9 +15,9 @@ import { CustomCursor } from "@/components/CustomCursor";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Seniors 2026 — We Survived Thanaweya Amma" },
+      { title: "Seniors 2B26 — We Survived Thanaweya Amma" },
       { name: "description", content: "A cinematic yearbook for the Class of 2026. Memories, chaos, letters and one last attendance check." },
-      { property: "og:title", content: "Seniors 2026" },
+      { property: "og:title", content: "Seniors 2B26" },
       { property: "og:description", content: "We survived Thanaweya Amma. Barely. Beautifully. Together." },
     ],
   }),

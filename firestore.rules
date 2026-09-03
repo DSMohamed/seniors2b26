@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Public yearbook site: anyone can read, nobody writes from the browser.
+    // Admin create/update/delete goes through /api/admin/* (service account).
+
+    match /students/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /memories/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /reels/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /timeline/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /chaos/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /letters/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

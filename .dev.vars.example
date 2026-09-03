@@ -1,5 +1,7 @@
 ## Cloudflare Wrangler local secrets (copy to .dev.vars)
-## Used by server route: /api/admin/students
+## For production (npm run deploy:worker): set the same keys in Cloudflare Dashboard →
+## Workers & Pages → your worker → Settings → Variables and Secrets
+## Used by server routes under /api/admin/*
 ADMIN_PASSWORD="change-me"
 
 # Firebase / Google Service Account (Firestore Admin API access)

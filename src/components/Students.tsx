@@ -1,19 +1,24 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { SectionHeader } from "./SectionHeader";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { listStudents } from "@/data/students";
+import { listStudents, type Student } from "@/data/students";
 
 export function Students() {
   const [q, setQ] = useState("");
+  const [selected, setSelected] = useState<Student | null>(null);
   const studentsQuery = useQuery({
     queryKey: ["students"],
     queryFn: listStudents,
   });
 
   const filtered = (studentsQuery.data ?? []).filter((s) =>
-    [s.name, s.nickname, s.badge, s.career, s.quote].join(" ").toLowerCase().includes(q.toLowerCase()),
+    [s.name, s.nickname, s.badge, s.career, s.quote, s.description]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(q.toLowerCase()),
   );
 
   return (
@@ -37,20 +42,26 @@ export function Students() {
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((s, i) => (
-            <motion.article
+            <motion.button
               key={s.id}
+              type="button"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.6, delay: (i % 4) * 0.08 }}
               whileHover={{ y: -6 }}
-              className="glass group relative overflow-hidden rounded-2xl p-6 transition-all hover:border-gold/50 hover:glow-gold"
+              onClick={() => setSelected(s)}
+              className="glass group relative overflow-hidden rounded-2xl p-6 text-left transition-all hover:border-gold/50 hover:glow-gold cursor-pointer"
             >
               <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gold/10 blur-2xl transition-opacity group-hover:opacity-100" />
               <div className="relative">
                 <div className="flex items-start justify-between">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full glass-strong text-3xl">
-                    {s.emoji}
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full glass-strong text-3xl overflow-hidden">
+                    {s.photo ? (
+                      <img src={s.photo} alt={s.name} className="h-full w-full object-cover" />
+                    ) : (
+                      s.emoji
+                    )}
                   </div>
                   <span className="rounded-full border border-gold/30 px-3 py-1 font-mono-grotesk text-[9px] uppercase tracking-widest text-gold">
                     {s.badge}
@@ -68,7 +79,7 @@ export function Students() {
                   <p className="mt-1 text-sm text-gold">{s.career}</p>
                 </div>
               </div>
-            </motion.article>
+            </motion.button>
           ))}
         </div>
         {studentsQuery.isLoading && (
@@ -83,6 +94,81 @@ export function Students() {
           <p className="mt-10 text-center text-muted-foreground">No one matches. They're probably skipping class.</p>
         )}
       </div>
+
+      <AnimatePresence>
+        {selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelected(null)}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-background/90 p-6 backdrop-blur-xl"
+          >
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="absolute right-6 top-6 rounded-full glass p-3 hover:glow-gold"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-gold/30 glow-gold"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {selected.photo ? (
+                <img
+                  src={selected.photo}
+                  alt={selected.name}
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              ) : (
+                <div className="flex aspect-[4/5] w-full items-center justify-center bg-gold/5 text-8xl">
+                  {selected.emoji}
+                </div>
+              )}
+              <div className="glass-strong p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-mono-grotesk text-[10px] uppercase tracking-[0.4em] text-gold">
+                      {selected.badge}
+                    </p>
+                    <h3 className="mt-2 font-display text-3xl leading-tight">{selected.name}</h3>
+                    <p className="font-mono-grotesk text-xs uppercase tracking-widest text-muted-foreground">
+                      aka "{selected.nickname}"
+                    </p>
+                  </div>
+                  <span className="text-4xl">{selected.emoji}</span>
+                </div>
+
+                {selected.description ? (
+                  <p className="mt-5 text-sm leading-relaxed text-foreground/90">{selected.description}</p>
+                ) : (
+                  <p className="mt-5 text-sm italic text-foreground/80">"{selected.quote}"</p>
+                )}
+
+                <div className="mt-6 space-y-4 border-t border-border/50 pt-5">
+                  <div>
+                    <p className="font-mono-grotesk text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                      Signature quote
+                    </p>
+                    <p className="mt-1 text-sm italic text-foreground/80">"{selected.quote}"</p>
+                  </div>
+                  <div>
+                    <p className="font-mono-grotesk text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                      Dream career
+                    </p>
+                    <p className="mt-1 text-sm text-gold">{selected.career}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -81,7 +81,7 @@ export function Goodbye() {
         >
           <p className="font-display text-3xl text-gradient-gold md:text-5xl">Class of 2026.</p>
           <p className="mt-4 font-mono-grotesk text-[10px] uppercase tracking-[0.5em] text-muted-foreground">
-            Fin.
+            END.
           </p>
         </motion.div>
       </div>
